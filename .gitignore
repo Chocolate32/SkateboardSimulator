@@ -6,4 +6,5 @@ Saved/
 .vsconfig
 *.sln
 Backup/
-UpgradeLog.htm
+Content/_ExternalActors_/
+UpgradeLog.*
