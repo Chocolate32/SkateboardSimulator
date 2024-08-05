@@ -25,7 +25,10 @@ ASkateCharacter::ASkateCharacter()
 	SkateMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Skate Mesh"));
 	SkateMesh->SetupAttachment(RootComponent);
 
-	
+	//Character
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2.f;
+	GetCharacterMovement()->GroundFriction = .2f;
 
 }
 
