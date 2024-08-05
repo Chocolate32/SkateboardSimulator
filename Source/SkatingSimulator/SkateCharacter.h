@@ -48,6 +48,12 @@ class SKATINGSIMULATOR_API ASkateCharacter : public ACharacter
 	UInputAction* Action_Jump;
 
 
+	//Movement
+	bool ShouldFixRotation;
+	bool isGoingForward;
+	void FinishForwardBackwardMove();
+
+
 public:
 	// Sets default values for this character's properties
 	ASkateCharacter();

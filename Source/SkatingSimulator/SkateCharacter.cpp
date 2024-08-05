@@ -3,6 +3,11 @@
 
 #include "SkateCharacter.h"
 
+void ASkateCharacter::FinishForwardBackwardMove()
+{
+	ShouldFixRotation = true;
+}
+
 // Sets default values
 ASkateCharacter::ASkateCharacter()
 {
@@ -27,7 +32,7 @@ ASkateCharacter::ASkateCharacter()
 
 	//Character
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 10.f;
 	GetCharacterMovement()->GroundFriction = .2f;
 
 }
@@ -53,6 +58,7 @@ void ASkateCharacter::MoveForward(const FInputActionValue& val)
 
 		FVector direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
 		AddMovementInput(direction, axis);
+		ShouldFixRotation = false;
 
 		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("hello"));
 
@@ -64,7 +70,7 @@ void ASkateCharacter::Turn(const FInputActionValue& val)
 	if (Controller) {
 		float axis = val.Get<float>();
 
-		AddControllerYawInput(axis/5.0f);
+		AddControllerYawInput((isGoingForward ? 1 : -1) * axis / 5.0f);
 		//AddActorWorldRotation(FRotator(0.f,axis,0.f));
 		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Value of axis = %f"), axis));
 	}
@@ -91,6 +97,16 @@ void ASkateCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+	float forwardDotProduct = FVector::DotProduct(GetVelocity().GetSafeNormal(), GetActorForwardVector());
+	float backwardDotProduct = FVector::DotProduct(GetVelocity().GetSafeNormal(), -GetActorForwardVector());
+
+	isGoingForward = forwardDotProduct>backwardDotProduct;
+
+	if (GetCharacterMovement()->Velocity != FVector::Zero() && ShouldFixRotation) {
+		GetCharacterMovement()->Velocity = (isGoingForward ? 1 : -1) * GetActorForwardVector() * GetVelocity().Size();
+	}
+
 }
 
 // Called to bind functionality to input
@@ -102,6 +118,7 @@ void ASkateCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		EnhancedInput->BindAction(Action_MoveForward, ETriggerEvent::Triggered, this, &ASkateCharacter::MoveForward);
+		EnhancedInput->BindAction(Action_MoveForward, ETriggerEvent::Completed, this, &ASkateCharacter::FinishForwardBackwardMove);
 
 		EnhancedInput->BindAction(Action_Turn, ETriggerEvent::Triggered, this, &ASkateCharacter::Turn);
 
